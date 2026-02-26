@@ -697,63 +697,16 @@ const handleMessage = async (sock, msg) => {
       }
     }
     
-// ================= SMART COMMAND DETECTION =================
-
-let command = null;
-let args = [];
-const bodyLower = body.toLowerCase().trim();
-
-// 1️⃣ حاول بالنقطة الأول
-if (bodyLower.startsWith(config.prefix)) {
-  const tempArgs = bodyLower
-    .slice(config.prefix.length)
-    .trim()
-    .split(/\s+/);
-
-  const commandName = tempArgs.shift()?.toLowerCase();
-  command = commands.get(commandName);
-
-  if (command) {
-    args = tempArgs;
-  }
-}
-
-// 2️⃣ لو ملقاش أمر بالنقطة جرب بدون نقطة
-if (!command) {
-  for (const [, cmd] of commands.entries()) {
-    const names = [
-      cmd.name,
-      ...(cmd.aliases || []),
-      cmd.showInMenu
-    ]
-      .filter(Boolean)
-      .map(n => n.toLowerCase());
-
-    for (const name of names) {
-      if (
-        bodyLower === name ||
-        bodyLower.startsWith(name + ' ')
-      ) {
-        command = cmd;
-
-        args = bodyLower
-          .slice(name.length)
-          .trim()
-          .split(/\s+/)
-          .filter(a => a);
-
-        break;
-      }
-    }
-
-    if (command) break;
-  }
-}
-
-// لو مفيش أمر → اخرج
-if (!command) return;
-
-// ================= END SMART DETECTION =================
+    // Check if message starts with prefix
+    if (!body.startsWith(config.prefix)) return;
+    
+    // Parse command
+    const args = body.slice(config.prefix.length).trim().split(/\s+/);
+    const commandName = args.shift().toLowerCase();
+    
+    // Get command
+    const command = commands.get(commandName);
+    if (!command) return;
     
     // Check self mode (private mode) - only owner can use commands
     if (config.selfMode && !isOwner(sender)) {
@@ -794,8 +747,7 @@ if (!command) return;
     }
     
     // Execute command
-    const commandName = command.name;
-console.log(`Executing command: ${commandName} from ${sender}`);
+    console.log(`Executing command: ${commandName} from ${sender}`);
     
     await command.execute(sock, msg, args, {
       from,
@@ -1206,40 +1158,73 @@ const handleAntilink = async (sock, msg, groupMetadata) => {
     console.error('Error in antilink handler:', error);
   }
 };
+
+
 // Anti-group mention handler
 const handleAntigroupmention = async (sock, msg, groupMetadata) => {
   try {
     const from = msg.key.remoteJid;
     const sender = msg.key.participant || msg.key.remoteJid;
-
+    
     const groupSettings = database.getGroupSettings(from);
-    if (!groupSettings.antigroupmention) return;
-
-    // 🔥 كشف منشن استوري الجروب مباشرة
-    if (msg.message?.groupStatusMentionMessage) {
-
-      const senderIsAdmin = await isAdmin(sock, sender, from, groupMetadata);
-      const senderIsOwner = isOwner(sender);
-
-      if (senderIsAdmin || senderIsOwner) return;
-
-      const botIsAdmin = await isBotAdmin(sock, from, groupMetadata);
-      const action = (groupSettings.antigroupmentionAction || 'delete').toLowerCase();
-
-      if (action === 'kick' && botIsAdmin) {
-        await sock.sendMessage(from, { delete: msg.key });
-        await sock.groupParticipantsUpdate(from, [sender], 'remove');
-      } else {
-        await sock.sendMessage(from, { delete: msg.key });
-      }
-
-      return;
+    
+    // Debug logging to confirm handler is being called
+    if (groupSettings.antigroupmention) {
+      // Debug log removed
+      // Log simplified message info instead of full structure to avoid huge logs
+      // Debug log removed
     }
-
-  } catch (error) {
-    console.error('Error in antigroupmention handler:', error);
-  }
-};
+    
+    if (!groupSettings.antigroupmention) return;
+    
+    // Check if this is a forwarded status message that mentions the group
+    // Comprehensive detection for various status mention message types
+    let isForwardedStatus = false;
+    
+    if (msg.message) {
+      // Direct checks for known status mention message types
+      isForwardedStatus = isForwardedStatus || !!msg.message.groupStatusMentionMessage;
+      isForwardedStatus = isForwardedStatus || 
+        (msg.message.protocolMessage && msg.message.protocolMessage.type === 25); // STATUS_MENTION_MESSAGE
+      
+      // Check for forwarded newsletter info in various message types
+      isForwardedStatus = isForwardedStatus || 
+        (msg.message.extendedTextMessage && msg.message.extendedTextMessage.contextInfo && 
+         msg.message.extendedTextMessage.contextInfo.forwardedNewsletterMessageInfo);
+      isForwardedStatus = isForwardedStatus || 
+        (msg.message.conversation && msg.message.contextInfo && 
+         msg.message.contextInfo.forwardedNewsletterMessageInfo);
+      isForwardedStatus = isForwardedStatus || 
+        (msg.message.imageMessage && msg.message.imageMessage.contextInfo && 
+         msg.message.imageMessage.contextInfo.forwardedNewsletterMessageInfo);
+      isForwardedStatus = isForwardedStatus || 
+        (msg.message.videoMessage && msg.message.videoMessage.contextInfo && 
+         msg.message.videoMessage.contextInfo.forwardedNewsletterMessageInfo);
+      isForwardedStatus = isForwardedStatus || 
+        (msg.message.contextInfo && msg.message.contextInfo.forwardedNewsletterMessageInfo);
+      
+      // Generic check for any forwarded message
+      if (msg.message.contextInfo) {
+        const ctx = msg.message.contextInfo;
+        isForwardedStatus = isForwardedStatus || !!ctx.isForwarded;
+        isForwardedStatus = isForwardedStatus || !!ctx.forwardingScore;
+        // Additional check for forwarded status specifically
+        isForwardedStatus = isForwardedStatus || !!ctx.quotedMessageTimestamp;
+      }
+      
+      // Additional checks for forwarded messages
+      if (msg.message.extendedTextMessage && msg.message.extendedTextMessage.contextInfo) {
+        const extCtx = msg.message.extendedTextMessage.contextInfo;
+        isForwardedStatus = isForwardedStatus || !!extCtx.isForwarded;
+        isForwardedStatus = isForwardedStatus || !!extCtx.forwardingScore;
+      }
+    }
+    
+    // Additional debug logging for detection
+    if (groupSettings.antigroupmention) {
+      // Debug log removed
+    }
+    
     // Additional debug logging to help identify message structure
     if (groupSettings.antigroupmention) {
       // Debug log removed
@@ -1259,6 +1244,23 @@ const handleAntigroupmention = async (sock, msg, groupMetadata) => {
       }
     }
     
+    // Debug logging for detection
+    if (groupSettings.antigroupmention) {
+      // Debug log removed
+    }
+    
+    if (isForwardedStatus) {
+      if (groupSettings.antigroupmention) {
+        // Process forwarded status message
+      }
+      
+      const senderIsAdmin = await isAdmin(sock, sender, from, groupMetadata);
+      const senderIsOwner = isOwner(sender);
+      
+      if (groupSettings.antigroupmention) {
+        // Debug log removed
+      }
+      
       // Don't act on admins or owners
       if (senderIsAdmin || senderIsOwner) return;
       
@@ -1301,49 +1303,35 @@ const handleAntigroupmention = async (sock, msg, groupMetadata) => {
 };
 
 
-// Anti-group mention handler
-const handleAntigroupmention = async (sock, msg, groupMetadata) => {
-  try {
-    const from = msg.key.remoteJid;
-    const sender = msg.key.participant || msg.key.remoteJid;
+// Anti-call feature initializer
+const initializeAntiCall = (sock) => {
+  // Anti-call feature - reject and block incoming calls
+  sock.ev.on('call', async (calls) => {
+    try {
+      // Reload config to get fresh settings
+      delete require.cache[require.resolve('./config')];
+      const config = require('./config');
+      
+      if (!config.defaultGroupSettings.anticall) return;
 
-    if (!from || !from.endsWith('@g.us')) return;
+      for (const call of calls) {
+        if (call.status === 'offer') {
+          // Reject the call
+          await sock.rejectCall(call.id, call.from);
 
-    const groupSettings = database.getGroupSettings(from);
-    if (!groupSettings || !groupSettings.antigroupmention) return;
+          // Block the caller
+          await sock.updateBlockStatus(call.from, 'block');
 
-    // كشف منشن استوري الجروب (Group Status Mention)
-    if (msg.message?.groupStatusMentionMessage) {
-
-      const senderIsAdmin = await isAdmin(sock, sender, from, groupMetadata);
-      const senderIsOwner = isOwner(sender);
-
-      if (senderIsAdmin || senderIsOwner) return;
-
-      const botIsAdmin = await isBotAdmin(sock, from, groupMetadata);
-      const action = (groupSettings.antigroupmentionAction || 'delete').toLowerCase();
-
-      if (action === 'kick' && botIsAdmin) {
-        try {
-          await sock.sendMessage(from, { delete: msg.key });
-          await sock.groupParticipantsUpdate(from, [sender], 'remove');
-        } catch (e) {
-          console.error('Failed to kick for antigroupmention:', e);
-        }
-      } else {
-        try {
-          await sock.sendMessage(from, { delete: msg.key });
-        } catch (e) {
-          console.error('Failed to delete message for antigroupmention:', e);
+          // Notify user
+          await sock.sendMessage(call.from, {
+            text: '🚫 Calls are not allowed. You have been blocked.'
+          });
         }
       }
-
-      return;
+    } catch (err) {
+      console.error('[ANTICALL ERROR]', err);
     }
-
-  } catch (error) {
-    console.error('Error in antigroupmention handler:', error);
-  }
+  });
 };
 
 module.exports = {
