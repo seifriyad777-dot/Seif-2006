@@ -1,15 +1,15 @@
 /**
- * TTS - Text to Speech Command
+ * TTS - تحويل النص إلى صوت
  */
 
 const APIs = require('../../utils/api');
 
 module.exports = {
   name: 'tts',
-  aliases: ['speak', 'say'],
+  aliases: ['speak', 'say', 'نطق', 'صوت'],
   category: 'general',
-  description: 'Convert text to speech using TTS-Nova',
-  usage: '.tts <text>',
+  description: 'تحويل النص إلى رسالة صوتية',
+  usage: 'نطق <النص>',
   
   async execute(sock, msg, args, extra) {
     try {
@@ -17,12 +17,11 @@ module.exports = {
       const text = args.join(' ');
 
       if (!text) {
-        return extra.reply('Please provide text to convert to speech.\nExample: .tts hi how are you');
+        return extra.reply('❌ اكتب النص بعد الأمر.\n\nمثال:\nنطق مرحبا يا سيف');
       }
 
       const audioUrl = await APIs.textToSpeech(text);
 
-      // Download audio as buffer
       const axios = require('axios');
       const audioResponse = await axios.get(audioUrl, {
         responseType: 'arraybuffer',
@@ -34,14 +33,12 @@ module.exports = {
       await sock.sendMessage(chatId, {
         audio: audioBuffer,
         mimetype: 'audio/mp3',
-        ptt: true // Play as voice message
+        ptt: true
       }, { quoted: msg });
 
     } catch (error) {
       console.error('TTS command error:', error);
-      await extra.reply(`❌ Failed to generate speech: ${error.message}`);
+      await extra.reply('❌ فشل إنشاء الرسالة الصوتية، حاول مرة أخرى.');
     }
   }
 };
-
-
