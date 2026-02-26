@@ -1,5 +1,5 @@
 /**
- * ATTP - Animated Text to Picture Sticker
+ * ATTP - إنشاء ملصق نص متحرك
  */
 
 const { spawn } = require('child_process');
@@ -9,33 +9,34 @@ const { writeExifVid } = require('../../utils/exif');
 
 module.exports = {
   name: 'attp',
-  aliases: ['ttp'],
+  aliases: ['ttp', 'متحرك'],
   category: 'general',
-  description: 'Create animated text sticker',
-  usage: '<text>',
+  description: 'إنشاء ملصق نص متحرك',
+  usage: 'متحرك <النص>',
   
   async execute(sock, msg, args, extra) {
     try {
       if (args.length === 0) {
-        return extra.reply(`❌ Please provide text!\n\nExample: ${extra.prefix || '.'}attp Hello World`);
+        return extra.reply(`❌ اكتب النص بعد الأمر.\n\nمثال:\nمتحرك مرحبا بالعالم`);
       }
       
       const text = args.join(' ');
+      
       if (text.length > 50) {
-        return extra.reply('❌ Text is too long! Maximum 50 characters.');
+        return extra.reply('❌ النص طويل جدًا. الحد الأقصى 50 حرف.');
       }
       
       try {
         const mp4Buffer = await renderBlinkingVideoWithFfmpeg(text);
-        const webpBuffer = await writeExifVid(mp4Buffer, { packname: 'Knight Bot' });
+        const webpBuffer = await writeExifVid(mp4Buffer, { packname: 'ملصقات البوت' });
         await sock.sendMessage(extra.from, { sticker: webpBuffer }, { quoted: msg });
       } catch (error) {
         console.error('Error generating attp sticker:', error);
-        await extra.reply('❌ Failed to generate the sticker.');
+        await extra.reply('❌ فشل إنشاء الملصق المتحرك.');
       }
     } catch (error) {
       console.error('ATTP command error:', error);
-      await extra.reply('❌ An error occurred while creating animated sticker!');
+      await extra.reply('❌ حدث خطأ أثناء إنشاء الملصق المتحرك.');
     }
   }
 };
@@ -60,9 +61,8 @@ function renderBlinkingVideoWithFfmpeg(text) {
       ? fontPath.replace(/\\/g, '/').replace(':', '\\:')
       : fontPath;
 
-    // Blink cycle length (seconds) and fast delay ~0.1s per color
     const cycle = 0.3;
-    const dur = 1.8; // 6 cycles
+    const dur = 1.8;
 
     const drawRed = `drawtext=fontfile='${safeFontPath}':text='${safeText}':fontcolor=red:borderw=2:bordercolor=black@0.6:fontsize=56:x=(w-text_w)/2:y=(h-text_h)/2:enable='lt(mod(t\\,${cycle})\\,0.1)'`;
     const drawBlue = `drawtext=fontfile='${safeFontPath}':text='${safeText}':fontcolor=blue:borderw=2:bordercolor=black@0.6:fontsize=56:x=(w-text_w)/2:y=(h-text_h)/2:enable='between(mod(t\\,${cycle})\\,0.1\\,0.2)'`;
@@ -86,6 +86,7 @@ function renderBlinkingVideoWithFfmpeg(text) {
     const ff = spawn('ffmpeg', args);
     const chunks = [];
     const errors = [];
+
     ff.stdout.on('data', d => chunks.push(d));
     ff.stderr.on('data', e => errors.push(e));
     ff.on('error', reject);
