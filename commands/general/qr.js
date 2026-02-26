@@ -1,20 +1,20 @@
 /**
- * QR Code Generator Command
+ * QR Code Generator Command - إنشاء رمز QR
  */
 
 const qrcode = require('qrcode');
 
 module.exports = {
   name: 'qr',
-  aliases: ['qrcode'],
+  aliases: ['qrcode', 'رمز', 'كيوآر'],
   category: 'general',
-  description: 'Generate QR code from text',
-  usage: '.qr <text>',
+  description: 'إنشاء رمز QR من نص أو رابط',
+  usage: 'رمز <النص>',
   
   async execute(sock, msg, args, extra) {
     try {
       if (args.length === 0) {
-        return extra.reply('❌ Usage: .qr <text>\n\nExample: .qr https://google.com');
+        return extra.reply('❌ طريقة الاستخدام:\nرمز <النص>\n\nمثال:\nرمز https://google.com');
       }
       
       const text = args.join(' ');
@@ -27,11 +27,11 @@ module.exports = {
       
       await sock.sendMessage(extra.from, {
         image: qrBuffer,
-        caption: `✅ QR Code Generated!\n\n📝 Text: ${text}`
+        caption: `✅ تم إنشاء رمز QR بنجاح\n\n📝 المحتوى:\n${text}`
       }, { quoted: msg });
       
     } catch (error) {
-      await extra.reply(`❌ Error: ${error.message}`);
+      await extra.reply(`❌ حدث خطأ: ${error.message}`);
     }
   }
 };
