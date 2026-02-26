@@ -39,10 +39,10 @@ module.exports = {
         menuText += `┏━━━━━━━━━━━━━━━━━\n`;
         menuText += `┃ ${emoji} ${title}\n`;
         menuText += `┗━━━━━━━━━━━━━━━━━\n`;
-        cmds.forEach(cmd => {
-          menuText += `│ ➜ ${cmd.name}\n`;
-        });
-        menuText += `\n`;
+cmds.forEach(cmd => {
+  const arabicAlias = cmd.aliases?.find(a => /[\u0600-\u06FF]/.test(a));
+  menuText += `│ ➜ ${arabicAlias || cmd.name}\n`;
+});
       };
 
       section('📌 الأوامر العامة', '🧭', categories.general);
