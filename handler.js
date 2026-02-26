@@ -794,7 +794,8 @@ if (!command) return;
     }
     
     // Execute command
-    console.log(`Executing command: ${commandName} from ${sender}`);
+    const commandName = command.name;
+console.log(`Executing command: ${commandName} from ${sender}`);
     
     await command.execute(sock, msg, args, {
       from,
