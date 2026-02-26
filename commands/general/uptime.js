@@ -1,17 +1,12 @@
 /**
- * Uptime Command - Display bot uptime since it was started
+ * Uptime Command - عرض مدة تشغيل البوت
  */
 
 const config = require('../../config');
 
-/**
- * Format time difference into human-readable string
- * @param {number} seconds - Total seconds of uptime
- * @returns {string} Formatted uptime string
- */
 function formatUptime(seconds) {
   if (seconds <= 0) {
-    return '0 seconds';
+    return '0 ثانية';
   }
   
   const days = Math.floor(seconds / 86400);
@@ -22,51 +17,47 @@ function formatUptime(seconds) {
   const parts = [];
   
   if (days > 0) {
-    parts.push(`${days} ${days === 1 ? 'day' : 'days'}`);
+    parts.push(`${days} يوم`);
   }
   if (hours > 0) {
-    parts.push(`${hours} ${hours === 1 ? 'hour' : 'hours'}`);
+    parts.push(`${hours} ساعة`);
   }
   if (minutes > 0) {
-    parts.push(`${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`);
+    parts.push(`${minutes} دقيقة`);
   }
   if (secs > 0 || parts.length === 0) {
-    parts.push(`${secs} ${secs === 1 ? 'second' : 'seconds'}`);
+    parts.push(`${secs} ثانية`);
   }
   
-  return parts.join(', ');
+  return parts.join(' ، ');
 }
 
 module.exports = {
   name: 'uptime',
-  aliases: ['runtime', 'botuptime', 'alive'],
+  aliases: ['runtime', 'botuptime', 'alive', 'المدة', 'تشغيل'],
   category: 'general',
-  description: 'Show how long the bot has been running',
-  usage: '.uptime',
+  description: 'عرض مدة تشغيل البوت',
+  usage: 'المدة',
   
   async execute(sock, msg, args, extra) {
     try {
-      // Get process uptime in seconds
       const uptimeSeconds = process.uptime();
       const uptime = formatUptime(uptimeSeconds);
       
-// Get bot info
-const botName = config.botName || 'Bot';
-const botVersion = 'V1.0.1';
+      const botName = config.botName || 'البوت';
+      const botVersion = 'الإصدار 1.0.1';
       
-      // Build response message
-      let message = `╭━━『 *Bot Uptime* 』━━╮\n\n`;
-    message += `🤖 *Bot Name:* ${botName}\n`;
-    message += `🧬 *Bot Version:* ${botVersion}\n`;
-      message += `⏱️ *Uptime:* ${uptime}\n`;
+      let message = `╭━━『 *مدة تشغيل البوت* 』━━╮\n\n`;
+      message += `🤖 اسم البوت: ${botName}\n`;
+      message += `🧬 ${botVersion}\n`;
+      message += `⏱️ مدة التشغيل: ${uptime}\n`;
       message += `\n╰━━━━━━━━━━━━━━━╯`;
       
       await extra.reply(message);
       
     } catch (error) {
       console.error('Error in uptime command:', error);
-      await extra.reply('❌ An error occurred while fetching uptime information. Please try again later.');
+      await extra.reply('❌ حدث خطأ أثناء جلب مدة التشغيل.');
     }
   }
 };
-
