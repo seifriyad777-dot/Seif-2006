@@ -4,10 +4,10 @@ const { getStats } = require('../../utils/groupstats');
 
 module.exports = {
     name: 'myactivity',
-    aliases: ['mystats', 'mymsgs', 'rank'],
+    aliases: ['mystats', 'mymsgs', 'rank', 'نشاطي'],
     category: 'general',
-    description: 'Check your activity stats for today',
-    usage: '.myactivity',
+    description: 'عرض إحصائيات نشاطك اليوم',
+    usage: 'نشاطي',
     groupOnly: true,
 
     async execute(sock, msg, args, extra) {
@@ -17,28 +17,28 @@ module.exports = {
             const stats = getStats(from);
 
             if (!stats || !stats.users || !stats.users[sender]) {
-                return extra.reply('📊 You haven\'t sent any messages today yet!');
+                return extra.reply('📊 لم تقم بإرسال أي رسائل اليوم بعد!');
             }
 
             const userCount = stats.users[sender];
             const totalMessages = stats.total;
             const percentage = ((userCount / totalMessages) * 100).toFixed(1);
 
-            // Calculate rank
             const sortedUsers = Object.entries(stats.users)
                 .sort((a, b) => b[1] - a[1]);
             
             const rank = sortedUsers.findIndex(([id]) => id === sender) + 1;
 
             const text = `
-📊 *Your Activity Today*
+╭━━『 📊 نشاطك اليوم 』━━╮
 
-👤 *User:* @${sender.split('@')[0]}
-📝 *Messages Sent:* ${userCount}
-📈 *Your Share:* ${percentage}%
-🏆 *Rank:* #${rank} of ${sortedUsers.length}
+👤 المستخدم: @${sender.split('@')[0]}
+📝 عدد الرسائل: ${userCount}
+📈 نسبة مساهمتك: ${percentage}%
+🏆 ترتيبك: #${rank} من ${sortedUsers.length}
 
-Keep chatting! 💬
+💬 استمر في التفاعل!
+╰━━━━━━━━━━━━━━━━━━━━╯
 `.trim();
 
             await sock.sendMessage(from, {
@@ -48,7 +48,7 @@ Keep chatting! 💬
 
         } catch (err) {
             console.error('[myactivity cmd] error:', err);
-            extra.reply('❌ Error loading your activity stats.');
+            extra.reply('❌ حدث خطأ أثناء تحميل إحصائياتك.');
         }
     }
 };
