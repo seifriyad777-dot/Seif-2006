@@ -1,80 +1,98 @@
 /**
- * Anti-Group Mention Command - Toggle antigroupmention protection with delete/kick options
+ * حماية من منشن الجروبات - تشغيل / إيقاف / تحديد الإجراء
  */
 
 const database = require('../../database');
 
 module.exports = {
   name: 'antigroupmention',
-  aliases: ['agm'],
+  aliases: ['agm', 'حماية_منشن_الجروبات'],
+  showInMenu: 'حماية_منشن_الجروبات',
   category: 'admin',
-  description: 'Configure antigroupmention protection (delete/kick)',
-  usage: '.antigroupmention <on/off/set/get>',
+  description: 'تفعيل أو ضبط حماية من منشن الجروبات',
+  usage: 'حماية_منشن_الجروبات <تشغيل/ايقاف/تعيين/حالة>',
   groupOnly: true,
   adminOnly: true,
   botAdminNeeded: true,
   
   async execute(sock, msg, args, extra) {
     try {
+
       if (!args[0]) {
         const settings = database.getGroupSettings(extra.from);
-        const status = settings.antigroupmention ? 'ON' : 'OFF';
-        const action = settings.antigroupmentionAction || 'delete';
+        const status = settings.antigroupmention ? 'مفعلة ✅' : 'متوقفة ❌';
+        const action = settings.antigroupmentionAction === 'kick' ? 'طرد' : 'حذف';
+
         return extra.reply(
-          `📌 *Antigroupmention Status*\n\n` +
-          `Status: *${status}*\n` +
-          `Action: *${action}*\n\n` +
-          `Usage:\n` +
-          `  .antigroupmention on\n` +
-          `  .antigroupmention off\n` +
-          `  .antigroupmention set delete | kick\n` +
-          `  .antigroupmention get`
+          `📌 *حالة حماية منشن الجروبات*\n\n` +
+          `الحالة: *${status}*\n` +
+          `الإجراء: *${action}*\n\n` +
+          `الاستخدام:\n` +
+          `  حماية_منشن_الجروبات تشغيل\n` +
+          `  حماية_منشن_الجروبات ايقاف\n` +
+          `  حماية_منشن_الجروبات تعيين حذف\n` +
+          `  حماية_منشن_الجروبات تعيين طرد\n` +
+          `  حماية_منشن_الجروبات حالة`
         );
       }
       
       const opt = args[0].toLowerCase();
-      
-      if (opt === 'on') {
+
+      // تشغيل
+      if (opt === 'تشغيل') {
         if (database.getGroupSettings(extra.from).antigroupmention) {
-          return extra.reply('*Antigroupmention is already on*');
+          return extra.reply('⚠️ الحماية مفعلة بالفعل');
         }
+
         database.updateGroupSettings(extra.from, { antigroupmention: true });
-        return extra.reply('*Antigroupmention has been turned ON*');
+        return extra.reply('✅ تم تفعيل حماية منشن الجروبات');
       }
-      
-      if (opt === 'off') {
+
+      // ايقاف
+      if (opt === 'ايقاف') {
         database.updateGroupSettings(extra.from, { antigroupmention: false });
-        return extra.reply('*Antigroupmention has been turned OFF*');
+        return extra.reply('❌ تم إيقاف حماية منشن الجروبات');
       }
-      
-      if (opt === 'set') {
-        if (args.length < 2) {
-          return extra.reply('*Please specify an action: .antigroupmention set delete | kick*');
+
+      // تعيين الإجراء
+      if (opt === 'تعيين') {
+        if (!args[1]) {
+          return extra.reply('⚠️ اختر الإجراء: حذف أو طرد');
         }
-        
-        const setAction = args[1].toLowerCase();
-        if (!['delete', 'kick'].includes(setAction)) {
-          return extra.reply('*Invalid action. Choose delete or kick.*');
-        }
-        
+
+        let action = args[1];
+
+        if (action === 'حذف') action = 'delete';
+        else if (action === 'طرد') action = 'kick';
+        else return extra.reply('❌ اختيار غير صالح. استخدم حذف أو طرد فقط.');
+
         database.updateGroupSettings(extra.from, { 
-          antigroupmentionAction: setAction,
-          antigroupmention: true // Auto-enable when setting action
+          antigroupmentionAction: action,
+          antigroupmention: true
         });
-        return extra.reply(`*Antigroupmention action set to ${setAction}*`);
+
+        return extra.reply(
+          `✅ تم تعيين الإجراء إلى ${action === 'kick' ? 'طرد العضو' : 'حذف الرسالة'}`
+        );
       }
-      
-      if (opt === 'get') {
+
+      // عرض الحالة
+      if (opt === 'حالة') {
         const settings = database.getGroupSettings(extra.from);
-        const status = settings.antigroupmention ? 'ON' : 'OFF';
-        const action = settings.antigroupmentionAction || 'delete';
-        return extra.reply(`*Antigroupmention Configuration:*\nStatus: ${status}\nAction: ${action}`);
+        const status = settings.antigroupmention ? 'مفعلة ✅' : 'متوقفة ❌';
+        const action = settings.antigroupmentionAction === 'kick' ? 'طرد' : 'حذف';
+
+        return extra.reply(
+          `📊 *إعدادات الحماية:*\n` +
+          `الحالة: ${status}\n` +
+          `الإجراء: ${action}`
+        );
       }
-      
-      return extra.reply('*Use .antigroupmention for usage.*');
-      
+
+      return extra.reply('❌ استخدم الأمر بشكل صحيح.');
+
     } catch (error) {
-      await extra.reply(`❌ Error: ${error.message}`);
+      await extra.reply(`❌ حصل خطأ:\n${error.message}`);
     }
   }
 };
