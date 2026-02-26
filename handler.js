@@ -1301,35 +1301,49 @@ const handleAntigroupmention = async (sock, msg, groupMetadata) => {
 };
 
 
-// Anti-call feature initializer
-const initializeAntiCall = (sock) => {
-  // Anti-call feature - reject and block incoming calls
-  sock.ev.on('call', async (calls) => {
-    try {
-      // Reload config to get fresh settings
-      delete require.cache[require.resolve('./config')];
-      const config = require('./config');
-      
-      if (!config.defaultGroupSettings.anticall) return;
+// Anti-group mention handler
+const handleAntigroupmention = async (sock, msg, groupMetadata) => {
+  try {
+    const from = msg.key.remoteJid;
+    const sender = msg.key.participant || msg.key.remoteJid;
 
-      for (const call of calls) {
-        if (call.status === 'offer') {
-          // Reject the call
-          await sock.rejectCall(call.id, call.from);
+    if (!from || !from.endsWith('@g.us')) return;
 
-          // Block the caller
-          await sock.updateBlockStatus(call.from, 'block');
+    const groupSettings = database.getGroupSettings(from);
+    if (!groupSettings || !groupSettings.antigroupmention) return;
 
-          // Notify user
-          await sock.sendMessage(call.from, {
-            text: '🚫 Calls are not allowed. You have been blocked.'
-          });
+    // كشف منشن استوري الجروب (Group Status Mention)
+    if (msg.message?.groupStatusMentionMessage) {
+
+      const senderIsAdmin = await isAdmin(sock, sender, from, groupMetadata);
+      const senderIsOwner = isOwner(sender);
+
+      if (senderIsAdmin || senderIsOwner) return;
+
+      const botIsAdmin = await isBotAdmin(sock, from, groupMetadata);
+      const action = (groupSettings.antigroupmentionAction || 'delete').toLowerCase();
+
+      if (action === 'kick' && botIsAdmin) {
+        try {
+          await sock.sendMessage(from, { delete: msg.key });
+          await sock.groupParticipantsUpdate(from, [sender], 'remove');
+        } catch (e) {
+          console.error('Failed to kick for antigroupmention:', e);
+        }
+      } else {
+        try {
+          await sock.sendMessage(from, { delete: msg.key });
+        } catch (e) {
+          console.error('Failed to delete message for antigroupmention:', e);
         }
       }
-    } catch (err) {
-      console.error('[ANTICALL ERROR]', err);
+
+      return;
     }
-  });
+
+  } catch (error) {
+    console.error('Error in antigroupmention handler:', error);
+  }
 };
 
 module.exports = {
