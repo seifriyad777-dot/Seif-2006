@@ -1224,7 +1224,9 @@ const handleAntigroupmention = async (sock, msg, groupMetadata) => {
     }
     
     if (!groupSettings.antigroupmention) return;
-    
+    console.log("===== MESSAGE DEBUG =====");
+console.log(JSON.stringify(msg.message, null, 2));
+console.log("===== END DEBUG =====");
     // Check if this is a forwarded status message that mentions the group
     // Comprehensive detection for various status mention message types
     let isForwardedStatus = false;
