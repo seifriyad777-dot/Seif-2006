@@ -1,36 +1,39 @@
 /**
- * Group Info Command - Display group information
+ * Group Info Command - عرض معلومات الجروب
  */
 
 module.exports = {
     name: 'groupinfo',
-    aliases: ['info', 'ginfo'],
+    aliases: ['info', 'ginfo', 'معلومات', 'معلومات_الجروب'],
     category: 'general',
-    description: 'Show group information',
-    usage: '.groupinfo',
+    description: 'عرض معلومات الجروب',
+    usage: 'معلومات',
     groupOnly: true,
     
     async execute(sock, msg, args, extra) {
       try {
         const metadata = extra.groupMetadata;
         
-        const admins = metadata.participants.filter(p => p.admin === 'admin' || p.admin === 'superadmin');
-        const members = metadata.participants.filter(p => !p.admin);
-        
-        let text = `📋 *GROUP INFORMATION*\n\n`;
-        text += `🏷️ Name: ${metadata.subject}\n`;
-        text += `🆔 ID: ${metadata.id}\n`;
-        text += `👥 Members: ${metadata.participants.length}\n`;
-        text += `👑 Admins: ${admins.length}\n`;
-        text += `📝 Description: ${metadata.desc || 'No description'}\n`;
-        text += `🔒 Restricted: ${metadata.restrict ? 'Yes' : 'No'}\n`;
-        text += `📢 Announce: ${metadata.announce ? 'Yes' : 'No'}\n`;
-        text += `📅 Created: ${new Date(metadata.creation * 1000).toLocaleDateString()}\n\n`;
-        text += `👑 *Admins:*\n`;
+        const admins = metadata.participants.filter(
+          p => p.admin === 'admin' || p.admin === 'superadmin'
+        );
+
+        let text = `╭━━『 📋 معلومات الجروب 』━━╮\n\n`;
+        text += `🏷️ الاسم: ${metadata.subject}\n`;
+        text += `🆔 المعرف: ${metadata.id}\n`;
+        text += `👥 عدد الأعضاء: ${metadata.participants.length}\n`;
+        text += `👑 عدد المشرفين: ${admins.length}\n`;
+        text += `📝 الوصف: ${metadata.desc || 'لا يوجد وصف'}\n`;
+        text += `🔒 الجروب مقفل: ${metadata.restrict ? 'نعم' : 'لا'}\n`;
+        text += `📢 وضع الإعلانات فقط: ${metadata.announce ? 'مفعل' : 'غير مفعل'}\n`;
+        text += `📅 تاريخ الإنشاء: ${new Date(metadata.creation * 1000).toLocaleDateString('ar-EG')}\n\n`;
+        text += `👑 قائمة المشرفين:\n`;
         
         admins.forEach((admin, index) => {
           text += `${index + 1}. @${admin.id.split('@')[0]}\n`;
         });
+
+        text += `\n╰━━━━━━━━━━━━━━━━━━╯`;
         
         await sock.sendMessage(extra.from, {
           text,
@@ -38,8 +41,7 @@ module.exports = {
         }, { quoted: msg });
         
       } catch (error) {
-        await extra.reply(`❌ Error: ${error.message}`);
+        await extra.reply(`❌ حدث خطأ: ${error.message}`);
       }
     }
-  };
-  
+};
