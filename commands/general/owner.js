@@ -1,25 +1,25 @@
 /**
- * Owner Command - Sends bot owner's contact card (vCard)
+ * Owner Command - عرض جهة اتصال مالك البوت
  */
 
 const config = require('../../config');
 
 module.exports = {
     name: 'owner',
-    aliases: ['creator', 'dev', 'botowner'],
+    aliases: ['creator', 'dev', 'botowner', 'المالك', 'المطور'],
     category: 'general',
-    description: 'Show bot owner contact information',
-    usage: '.owner',
+    description: 'عرض معلومات مالك البوت',
+    usage: 'المالك',
     ownerOnly: false,
 
     async execute(sock, msg, args, extra) {
         try {
             const chatId = extra.from;
 
-            // Owner numbers array -> convert each to a vCard
             const ownerNames = Array.isArray(config.ownerName) ? config.ownerName : [config.ownerName];
+
             const vCards = config.ownerNumber.map((num, index) => {
-                const name = ownerNames[index] || ownerNames[0] || 'Bot Owner';
+                const name = ownerNames[index] || ownerNames[0] || 'مالك البوت';
                 return {
                     vcard: `
 BEGIN:VCARD
@@ -31,7 +31,7 @@ END:VCARD
                 };
             });
 
-            const displayName = ownerNames[0] || config.ownerName || 'Bot Owner';
+            const displayName = ownerNames[0] || config.ownerName || 'مالك البوت';
 
             await sock.sendMessage(chatId, {
                 contacts: {
@@ -40,11 +40,11 @@ END:VCARD
                 }
             });
 
-            await extra.reply('👑 Here is the contact of my *Owner*.');
+            await extra.reply('👑 ده رقم مالك البوت لو حابب تتواصل معاه.');
 
         } catch (error) {
             console.error('Owner command error:', error);
-            await extra.reply(`❌ Error: ${error.message}`);
+            await extra.reply(`❌ حدث خطأ: ${error.message}`);
         }
     }
 };
