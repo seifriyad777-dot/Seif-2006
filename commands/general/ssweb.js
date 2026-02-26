@@ -1,27 +1,26 @@
 /**
- * SSWeb - Screenshot Website Command
+ * SSWeb - تصوير موقع
  */
 
 const APIs = require('../../utils/api');
 
 module.exports = {
   name: 'ssweb',
-  aliases: ['screenshot', 'ss', 'webss'],
+  aliases: ['screenshot', 'ss', 'webss', 'موقع', 'تصوير'],
   category: 'general',
-  description: 'Take a screenshot of a website',
-  usage: '.ssweb <url>',
+  description: 'تصوير صفحة موقع وإرسال لقطة شاشة',
+  usage: 'موقع <الرابط>',
   
   async execute(sock, msg, args, extra) {
     try {
       if (args.length === 0) {
-        return extra.reply('❌ Please provide a website URL!\n\nExample: .ssweb https://github.com');
+        return extra.reply('❌ اكتب رابط الموقع بعد الأمر.\n\nمثال:\nموقع https://github.com');
       }
       
       const url = args.join(' ');
       
-      // Validate URL
       if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        return extra.reply('❌ Please provide a valid URL starting with http:// or https://');
+        return extra.reply('❌ يجب أن يبدأ الرابط بـ http:// أو https://');
       }
       
       await sock.sendMessage(extra.from, {
@@ -36,8 +35,7 @@ module.exports = {
       
     } catch (error) {
       console.error('SSWeb command error:', error);
-      await extra.reply(`❌ Failed to screenshot website: ${error.message}`);
+      await extra.reply('❌ فشل تصوير الموقع، تأكد أن الرابط صحيح.');
     }
   }
 };
-
