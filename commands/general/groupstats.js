@@ -4,10 +4,19 @@ const { getStats } = require('../../utils/groupstats');
 
 module.exports = {
     name: 'groupstats',
-    aliases: ['stats', 'leaderboard', 'gstats', 'topmembers', 'msgs', 'messagestats'],
+    aliases: [
+        'stats',
+        'leaderboard',
+        'gstats',
+        'topmembers',
+        'msgs',
+        'messagestats',
+        'إحصائيات',
+        'الأكثر_نشاطًا'
+    ],
     category: 'general',
-    description: 'Show today\'s group chat statistics',
-    usage: '.groupstats',
+    description: 'عرض إحصائيات نشاط الجروب اليوم',
+    usage: 'إحصائيات',
     groupOnly: true,
 
     async execute(sock, msg, args, extra) {
@@ -16,28 +25,32 @@ module.exports = {
             const stats = getStats(from);
 
             if (!stats)
-                return extra.reply('📊 No activity recorded today.');
+                return extra.reply('📊 لا يوجد نشاط مسجل اليوم.');
 
             const { total, users } = stats;
 
-            // top members
             const sortedUsers = Object.entries(users)
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 5);
 
             let topText = sortedUsers.length
-                ? sortedUsers.map(([id, count], i) => `${i + 1}) @${id.split('@')[0]} — ${count} msgs`).join('\n')
-                : 'No active users yet.';
+                ? sortedUsers
+                    .map(([id, count], i) =>
+                        `${i + 1}) @${id.split('@')[0]} — ${count} رسالة`
+                    )
+                    .join('\n')
+                : 'لا يوجد أعضاء نشطين حتى الآن.';
 
             const text = `
-📊 *Group Stats — Today*
+╭━━『 📊 إحصائيات الجروب اليوم 』━━╮
 
-📌 *Total Messages:* ${total}
+📌 إجمالي الرسائل: ${total}
 
-👥 *Top Active Members:*
+👥 أكثر الأعضاء نشاطًا:
 ${topText}
 
-Type .myactivity to see your stats.
+💡 اكتب "نشاطي" لمعرفة إحصائياتك.
+╰━━━━━━━━━━━━━━━━━━━━╯
 `.trim();
 
             await sock.sendMessage(from, {
@@ -47,7 +60,7 @@ Type .myactivity to see your stats.
 
         } catch (err) {
             console.error('[groupstats cmd] error:', err);
-            extra.reply('❌ Error loading stats.');
+            extra.reply('❌ حدث خطأ أثناء تحميل الإحصائيات.');
         }
     }
 };
