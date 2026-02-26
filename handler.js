@@ -1213,15 +1213,38 @@ const handleAntigroupmention = async (sock, msg, groupMetadata) => {
   try {
     const from = msg.key.remoteJid;
     const sender = msg.key.participant || msg.key.remoteJid;
-    
+
     const groupSettings = database.getGroupSettings(from);
-    
-    // Debug logging to confirm handler is being called
-    if (groupSettings.antigroupmention) {
-      // Debug log removed
-      // Log simplified message info instead of full structure to avoid huge logs
-      // Debug log removed
+    if (!groupSettings.antigroupmention) return;
+
+    // 🔥 كشف منشن استوري الجروب مباشرة
+    if (msg.message?.groupStatusMentionMessage) {
+
+      const senderIsAdmin = await isAdmin(sock, sender, from, groupMetadata);
+      const senderIsOwner = isOwner(sender);
+
+      // ماينفذش على الأدمن أو الأونر
+      if (senderIsAdmin || senderIsOwner) return;
+
+      const botIsAdmin = await isBotAdmin(sock, from, groupMetadata);
+      const action = (groupSettings.antigroupmentionAction || 'delete').toLowerCase();
+
+      // لو الإجراء طرد
+      if (action === 'kick' && botIsAdmin) {
+        await sock.sendMessage(from, { delete: msg.key });
+        await sock.groupParticipantsUpdate(from, [sender], 'remove');
+      } else {
+        // الافتراضي حذف
+        await sock.sendMessage(from, { delete: msg.key });
+      }
+
+      return;
     }
+
+  } catch (error) {
+    console.error('Error in antigroupmention handler:', error);
+  }
+};
     
     if (!groupSettings.antigroupmention) return;
     console.log("===== MESSAGE DEBUG =====");
