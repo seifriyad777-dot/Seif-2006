@@ -1,21 +1,20 @@
 /**
- * ViewOnce Command - Reveal view-once messages
+ * ViewOnce Command - عرض رسائل العرض لمرة واحدة
  */
 
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 
 module.exports = {
   name: 'viewonce',
-  aliases: ['readvo', 'read', 'vv', 'readviewonce'],
+  aliases: ['readvo', 'read', 'vv', 'readviewonce', 'فتح', 'عرض'],
   category: 'general',
-  description: 'Reveal view-once messages (images/videos/audio)',
-  usage: '.viewonce (reply to view-once message)',
+  description: 'عرض محتوى الرسائل التي تُعرض لمرة واحدة',
+  usage: 'فتح (بالرد على رسالة عرض لمرة واحدة)',
   
   async execute(sock, msg, args) {
     try {
       const chatId = msg.key.remoteJid;
 
-      // Try to get contextInfo from different message types (reply can be from text, image, video, etc.)
       const ctx = msg.message?.extendedTextMessage?.contextInfo
         || msg.message?.imageMessage?.contextInfo
         || msg.message?.videoMessage?.contextInfo
@@ -25,14 +24,13 @@ module.exports = {
       if (!ctx?.quotedMessage || !ctx?.stanzaId) {
         return await sock.sendMessage(
           chatId,
-          { text: '🗑️ Reply to a *view-once* message to reveal it.' },
+          { text: '🗑️ قم بالرد على رسالة عرض لمرة واحدة لعرضها.' },
           { quoted: msg }
         );
       }
 
       const quotedMsg = ctx.quotedMessage;
 
-      // Check various patterns used for view-once messages
       const hasViewOnce =
         !!quotedMsg.viewOnceMessageV2 ||
         !!quotedMsg.viewOnceMessageV2Extension ||
@@ -45,7 +43,7 @@ module.exports = {
       if (!hasViewOnce) {
         return await sock.sendMessage(
           chatId,
-          { text: '❌ This is not a view-once message!' },
+          { text: '❌ هذه ليست رسالة عرض لمرة واحدة.' },
           { quoted: msg }
         );
       }
@@ -53,22 +51,18 @@ module.exports = {
       let actualMsg = null;
       let mtype = null;
 
-      // Newer Baileys: viewOnceMessageV2Extension
       if (quotedMsg.viewOnceMessageV2Extension?.message) {
         actualMsg = quotedMsg.viewOnceMessageV2Extension.message;
         mtype = Object.keys(actualMsg)[0];
 
-      // Classic Baileys: viewOnceMessageV2
       } else if (quotedMsg.viewOnceMessageV2?.message) {
         actualMsg = quotedMsg.viewOnceMessageV2.message;
         mtype = Object.keys(actualMsg)[0];
 
-      // Older: viewOnceMessage
       } else if (quotedMsg.viewOnceMessage?.message) {
         actualMsg = quotedMsg.viewOnceMessage.message;
         mtype = Object.keys(actualMsg)[0];
 
-      // Direct message with viewOnce flag on media
       } else if (quotedMsg.imageMessage?.viewOnce) {
         actualMsg = { imageMessage: quotedMsg.imageMessage };
         mtype = 'imageMessage';
@@ -83,7 +77,7 @@ module.exports = {
       if (!actualMsg || !mtype) {
         return await sock.sendMessage(
           chatId,
-          { text: '❌ Unsupported view-once message type.' },
+          { text: '❌ نوع رسالة غير مدعوم.' },
           { quoted: msg }
         );
       }
@@ -143,9 +137,7 @@ module.exports = {
       await sock.sendMessage(
         msg.key.remoteJid,
         {
-          text:
-            '❌ Error processing view-once message: ' +
-            (error.message || 'Unknown error')
+          text: '❌ حدث خطأ أثناء معالجة رسالة العرض لمرة واحدة.'
         },
         { quoted: msg }
       );
