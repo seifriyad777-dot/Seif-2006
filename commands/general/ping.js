@@ -1,30 +1,29 @@
 /**
- * Ping Command - Check bot response time
+ * Ping Command - فحص سرعة استجابة البوت
  */
 
 module.exports = {
     name: 'ping',
-    aliases: ['p'],
+    aliases: ['p', 'فحص'],
     category: 'general',
-    description: 'Check bot response time',
-    usage: '.ping',
+    description: 'فحص سرعة استجابة البوت',
+    usage: 'فحص',
     
     async execute(sock, msg, args, extra) {
       try {
         const start = Date.now();
-        const sent = await extra.reply('🏓 Pinging...');
+        const sent = await extra.reply('⏳ جاري فحص السرعة...');
         const end = Date.now();
         
         const responseTime = end - start;
         
         await sock.sendMessage(extra.from, {
-          text: `🏓 *Pong!*\n⚡ Response Time: ${responseTime}ms`,
+          text: `🏓 *تم الفحص بنجاح!*\n⚡ سرعة الاستجابة: ${responseTime} مللي ثانية`,
           edit: sent.key
         });
         
       } catch (error) {
-        await extra.reply(`❌ Error: ${error.message}`);
+        await extra.reply(`❌ حدث خطأ: ${error.message}`);
       }
     }
-  };
-  
+};
