@@ -697,16 +697,63 @@ const handleMessage = async (sock, msg) => {
       }
     }
     
-    // Check if message starts with prefix
-    if (!body.startsWith(config.prefix)) return;
-    
-    // Parse command
-    const args = body.slice(config.prefix.length).trim().split(/\s+/);
-    const commandName = args.shift().toLowerCase();
-    
-    // Get command
-    const command = commands.get(commandName);
-    if (!command) return;
+// ================= SMART COMMAND DETECTION =================
+
+let command = null;
+let args = [];
+const bodyLower = body.toLowerCase().trim();
+
+// 1️⃣ حاول بالنقطة الأول
+if (bodyLower.startsWith(config.prefix)) {
+  const tempArgs = bodyLower
+    .slice(config.prefix.length)
+    .trim()
+    .split(/\s+/);
+
+  const commandName = tempArgs.shift()?.toLowerCase();
+  command = commands.get(commandName);
+
+  if (command) {
+    args = tempArgs;
+  }
+}
+
+// 2️⃣ لو ملقاش أمر بالنقطة جرب بدون نقطة
+if (!command) {
+  for (const [, cmd] of commands.entries()) {
+    const names = [
+      cmd.name,
+      ...(cmd.aliases || []),
+      cmd.showInMenu
+    ]
+      .filter(Boolean)
+      .map(n => n.toLowerCase());
+
+    for (const name of names) {
+      if (
+        bodyLower === name ||
+        bodyLower.startsWith(name + ' ')
+      ) {
+        command = cmd;
+
+        args = bodyLower
+          .slice(name.length)
+          .trim()
+          .split(/\s+/)
+          .filter(a => a);
+
+        break;
+      }
+    }
+
+    if (command) break;
+  }
+}
+
+// لو مفيش أمر → اخرج
+if (!command) return;
+
+// ================= END SMART DETECTION =================
     
     // Check self mode (private mode) - only owner can use commands
     if (config.selfMode && !isOwner(sender)) {
