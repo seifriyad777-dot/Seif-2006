@@ -1,5 +1,5 @@
 /**
- * GitHub Command - Show bot GitHub repository and stats
+ * GitHub Command - عرض مستودع البوت على GitHub
  */
 
 const axios = require('axios');
@@ -7,74 +7,63 @@ const config = require('../../config');
 
 module.exports = {
     name: 'github',
-    aliases: ['repo', 'git', 'source', 'sc', 'script'],
+    aliases: ['repo', 'git', 'source', 'sc', 'script', 'المصدر', 'جيتهاب'],
     category: 'general',
-    description: 'Show bot GitHub repository and statistics',
-    usage: '.github',
+    description: 'عرض مستودع البوت وإحصائياته',
+    usage: 'المصدر',
     ownerOnly: false,
 
     async execute(sock, msg, args, extra) {
         try {
             const chatId = extra.from;
             
-            // GitHub repository URL
             const repoUrl = 'https://github.com/mruniquehacker/KnightBot-Mini';
             const apiUrl = 'https://api.github.com/repos/mruniquehacker/KnightBot-Mini';
             
-            // Send loading message
-            const loadingMsg = await extra.reply('🔍 Fetching GitHub repository information...');
+            const loadingMsg = await extra.reply('🔄 جاري جلب معلومات المستودع...');
             
             try {
-                // Fetch repository data from GitHub API
                 const response = await axios.get(apiUrl, {
-                    headers: {
-                        'User-Agent': 'KnightBot-Mini'
-                    }
+                    headers: { 'User-Agent': 'KnightBot-Mini' }
                 });
                 
                 const repo = response.data;
                 
-                // Format the response with proper styling
-                let message = `╭━━『 *GitHub Repository* 』━━╮\n\n`;
-                message += `🤖 *Bot Name:* ${config.botName}\n`;
-                message += `🔗 *Repository:* ${repo.name}\n`;
-                message += `👨‍💻 *Owner:* ${repo.owner.login}\n`;
-                message += `📄 *Description:* ${repo.description || 'No description provided'}\n`;
-                message += `🌐 *URL:* ${repo.html_url}\n\n`;
+                let message = `╭━━『 📂 مستودع البوت 』━━╮\n\n`;
+                message += `🤖 اسم البوت: ${config.botName}\n`;
+                message += `🔗 اسم المستودع: ${repo.name}\n`;
+                message += `👨‍💻 المطور: ${repo.owner.login}\n`;
+                message += `📄 الوصف: ${repo.description || 'لا يوجد وصف'}\n`;
+                message += `🌐 الرابط: ${repo.html_url}\n\n`;
                 
-                message += `📊 *Repository Statistics*\n`;
-                message += `⭐ *Stars:* ${repo.stargazers_count.toLocaleString()}\n`;
-                message += `🍴 *Forks:* ${repo.forks_count.toLocaleString()}\n`;
-                message += `👁️ *Watchers:* ${repo.watchers_count.toLocaleString()}\n`;
-                message += `📦 *Size:* ${(repo.size / 1024).toFixed(2)} MB\n\n`;
+                message += `📊 إحصائيات المستودع\n`;
+                message += `⭐ عدد النجوم: ${repo.stargazers_count.toLocaleString()}\n`;
+                message += `🍴 عدد النسخ (Forks): ${repo.forks_count.toLocaleString()}\n`;
+                message += `👁️ عدد المتابعين: ${repo.watchers_count.toLocaleString()}\n`;
+                message += `📦 الحجم: ${(repo.size / 1024).toFixed(2)} MB\n\n`;
                 
-                message += `🔗 *Quick Links*\n`;
-                message += `⭐ Star: ${repo.html_url}/stargazers\n`;
-                message += `🍴 Fork: ${repo.html_url}/fork\n`;
-                message += `📥 Clone: git clone ${repo.clone_url}\n\n`;
+                message += `🔗 روابط سريعة\n`;
+                message += `⭐ دعم المشروع: ${repo.html_url}/stargazers\n`;
+                message += `🍴 إنشاء نسخة: ${repo.html_url}/fork\n`;
+                message += `📥 تحميل مباشر: git clone ${repo.clone_url}\n\n`;
                 
-                message += `╰━━━━━━━━━━━━━━━╯\n\n`;
-                message += `> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${config.botName}*`;
+                message += `╰━━━━━━━━━━━━━━━━━━╯\n\n`;
+                message += `> تم التشغيل بواسطة ${config.botName}`;
                 
-                // Edit the loading message with the actual data
                 await sock.sendMessage(chatId, {
                     text: message,
                     edit: loadingMsg.key
                 });
                 
             } catch (apiError) {
-                // Fallback message if API fails
                 console.error('GitHub API Error:', apiError.message);
                 
-                let fallbackMessage = `╭━━『 *GitHub Repository* 』━━╮\n\n`;
-                fallbackMessage += `🤖 *Bot Name:* ${config.botName}\n`;
-                fallbackMessage += `🔗 *Repository:* KnightBot-Mini\n`;
-                fallbackMessage += `👨‍💻 *Owner:* mruniquehacker\n`;
-                fallbackMessage += `🌐 *URL:* ${repoUrl}\n\n`;
-                fallbackMessage += `⚠️ *Note:* Unable to fetch real-time statistics.\n`;
-                fallbackMessage += `Please visit the repository directly for latest stats.\n\n`;
-                fallbackMessage += `╰━━━━━━━━━━━━━━━╯\n\n`;
-                fallbackMessage += `> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${config.botName}*`;
+                let fallbackMessage = `╭━━『 📂 مستودع البوت 』━━╮\n\n`;
+                fallbackMessage += `🤖 اسم البوت: ${config.botName}\n`;
+                fallbackMessage += `🌐 الرابط: ${repoUrl}\n\n`;
+                fallbackMessage += `⚠️ تعذر جلب الإحصائيات المباشرة.\n`;
+                fallbackMessage += `يرجى زيارة الرابط للاطلاع على التفاصيل.\n\n`;
+                fallbackMessage += `╰━━━━━━━━━━━━━━━━━━╯`;
                 
                 await sock.sendMessage(chatId, {
                     text: fallbackMessage,
@@ -84,7 +73,7 @@ module.exports = {
             
         } catch (error) {
             console.error('GitHub command error:', error);
-            await extra.reply(`❌ Error: ${error.message}`);
+            await extra.reply(`❌ حدث خطأ: ${error.message}`);
         }
     }
 };
