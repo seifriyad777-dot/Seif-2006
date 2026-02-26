@@ -45,7 +45,7 @@ module.exports = {
         menuText += `\n`;
       };
 
-      section('أوامر عامة', '🧭', categories.general);
+      section('📌 الأوامر العامة', '🧭', categories.general);
       section('أوامر الذكاء الاصطناعي', '🤖', categories.ai);
       section('أوامر الجروب', '👥', categories.group);
       section('أوامر الأدمن', '🛡️', categories.admin);
