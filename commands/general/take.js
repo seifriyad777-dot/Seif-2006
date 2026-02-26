@@ -1,6 +1,5 @@
 /**
- * Take Command
- * Steal a sticker and re-pack with custom or user packname
+ * Take Command - إعادة تعبئة ملصق باسم جديد
  */
 
 const { downloadMediaMessage } = require('@whiskeysockets/baileys');
@@ -10,12 +9,13 @@ const config = require('../../config');
 
 module.exports = {
   name: 'take',
-  aliases: ['steal'],
-  description: 'Steal a sticker and change its packname',
-  usage: '.take [packname] (reply to sticker)',
+  aliases: ['steal', 'سرق', 'اعادة'],
+  description: 'إعادة تعبئة ملصق باسم باك جديد',
+  usage: 'سرق [اسم الباك] (بالرد على ملصق)',
   category: 'general',
   
   async execute(sock, msg, args, extra) {
+
     let targetMessage = msg;
     const ctxInfo = msg.message?.extendedTextMessage?.contextInfo;
     
@@ -33,7 +33,7 @@ module.exports = {
     const stickerMsg = targetMessage.message?.stickerMessage;
     
     if (!stickerMsg) {
-      return extra.reply('🎭 Reply to a *sticker* with `.take` to steal it.');
+      return extra.reply('🎭 قم بالرد على ملصق واكتب "سرق" لإعادة تعبئته.');
     }
     
     try {
@@ -44,7 +44,9 @@ module.exports = {
         { logger: undefined, reuploadRequest: sock.updateMediaMessage },
       );
       
-      if (!mediaBuffer) return extra.reply('❌ Failed to download sticker. Please try again.');
+      if (!mediaBuffer) {
+        return extra.reply('❌ فشل تحميل الملصق، حاول مرة أخرى.');
+      }
       
       const userName = msg.pushName || extra.sender.split('@')[0];
       const packname = args.length ? args.join(' ') : userName;
@@ -71,12 +73,13 @@ module.exports = {
       img.exif = exif;
       const finalBuffer = await img.save(null);
       
-      await sock.sendMessage(extra.from, { sticker: finalBuffer }, { quoted: msg });
+      await sock.sendMessage(extra.from, { 
+        sticker: finalBuffer 
+      }, { quoted: msg });
       
     } catch (error) {
       console.error('Take command error:', error);
-      await extra.reply('❌ Failed to steal sticker. Please try again.');
+      await extra.reply('❌ فشل إعادة تعبئة الملصق.');
     }
   },
 };
-
