@@ -1206,8 +1206,6 @@ const handleAntilink = async (sock, msg, groupMetadata) => {
     console.error('Error in antilink handler:', error);
   }
 };
-
-
 // Anti-group mention handler
 const handleAntigroupmention = async (sock, msg, groupMetadata) => {
   try {
@@ -1223,18 +1221,15 @@ const handleAntigroupmention = async (sock, msg, groupMetadata) => {
       const senderIsAdmin = await isAdmin(sock, sender, from, groupMetadata);
       const senderIsOwner = isOwner(sender);
 
-      // ماينفذش على الأدمن أو الأونر
       if (senderIsAdmin || senderIsOwner) return;
 
       const botIsAdmin = await isBotAdmin(sock, from, groupMetadata);
       const action = (groupSettings.antigroupmentionAction || 'delete').toLowerCase();
 
-      // لو الإجراء طرد
       if (action === 'kick' && botIsAdmin) {
         await sock.sendMessage(from, { delete: msg.key });
         await sock.groupParticipantsUpdate(from, [sender], 'remove');
       } else {
-        // الافتراضي حذف
         await sock.sendMessage(from, { delete: msg.key });
       }
 
@@ -1245,59 +1240,6 @@ const handleAntigroupmention = async (sock, msg, groupMetadata) => {
     console.error('Error in antigroupmention handler:', error);
   }
 };
-    
-    if (!groupSettings.antigroupmention) return;
-    console.log("===== MESSAGE DEBUG =====");
-console.log(JSON.stringify(msg.message, null, 2));
-console.log("===== END DEBUG =====");
-    // Check if this is a forwarded status message that mentions the group
-    // Comprehensive detection for various status mention message types
-    let isForwardedStatus = false;
-    
-    if (msg.message) {
-      // Direct checks for known status mention message types
-      isForwardedStatus = isForwardedStatus || !!msg.message.groupStatusMentionMessage;
-      isForwardedStatus = isForwardedStatus || 
-        (msg.message.protocolMessage && msg.message.protocolMessage.type === 25); // STATUS_MENTION_MESSAGE
-      
-      // Check for forwarded newsletter info in various message types
-      isForwardedStatus = isForwardedStatus || 
-        (msg.message.extendedTextMessage && msg.message.extendedTextMessage.contextInfo && 
-         msg.message.extendedTextMessage.contextInfo.forwardedNewsletterMessageInfo);
-      isForwardedStatus = isForwardedStatus || 
-        (msg.message.conversation && msg.message.contextInfo && 
-         msg.message.contextInfo.forwardedNewsletterMessageInfo);
-      isForwardedStatus = isForwardedStatus || 
-        (msg.message.imageMessage && msg.message.imageMessage.contextInfo && 
-         msg.message.imageMessage.contextInfo.forwardedNewsletterMessageInfo);
-      isForwardedStatus = isForwardedStatus || 
-        (msg.message.videoMessage && msg.message.videoMessage.contextInfo && 
-         msg.message.videoMessage.contextInfo.forwardedNewsletterMessageInfo);
-      isForwardedStatus = isForwardedStatus || 
-        (msg.message.contextInfo && msg.message.contextInfo.forwardedNewsletterMessageInfo);
-      
-      // Generic check for any forwarded message
-      if (msg.message.contextInfo) {
-        const ctx = msg.message.contextInfo;
-        isForwardedStatus = isForwardedStatus || !!ctx.isForwarded;
-        isForwardedStatus = isForwardedStatus || !!ctx.forwardingScore;
-        // Additional check for forwarded status specifically
-        isForwardedStatus = isForwardedStatus || !!ctx.quotedMessageTimestamp;
-      }
-      
-      // Additional checks for forwarded messages
-      if (msg.message.extendedTextMessage && msg.message.extendedTextMessage.contextInfo) {
-        const extCtx = msg.message.extendedTextMessage.contextInfo;
-        isForwardedStatus = isForwardedStatus || !!extCtx.isForwarded;
-        isForwardedStatus = isForwardedStatus || !!extCtx.forwardingScore;
-      }
-    }
-    
-    // Additional debug logging for detection
-    if (groupSettings.antigroupmention) {
-      // Debug log removed
-    }
-    
     // Additional debug logging to help identify message structure
     if (groupSettings.antigroupmention) {
       // Debug log removed
@@ -1317,23 +1259,6 @@ console.log("===== END DEBUG =====");
       }
     }
     
-    // Debug logging for detection
-    if (groupSettings.antigroupmention) {
-      // Debug log removed
-    }
-    
-    if (isForwardedStatus) {
-      if (groupSettings.antigroupmention) {
-        // Process forwarded status message
-      }
-      
-      const senderIsAdmin = await isAdmin(sock, sender, from, groupMetadata);
-      const senderIsOwner = isOwner(sender);
-      
-      if (groupSettings.antigroupmention) {
-        // Debug log removed
-      }
-      
       // Don't act on admins or owners
       if (senderIsAdmin || senderIsOwner) return;
       
