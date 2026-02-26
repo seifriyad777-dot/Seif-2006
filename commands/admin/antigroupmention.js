@@ -18,6 +18,11 @@ module.exports = {
   async execute(sock, msg, args, extra) {
     try {
 
+      // 🔒 حماية داخلية إضافية (حتى لو الهاندلر فيه مشكلة)
+      if (!extra.isAdmin && !extra.isOwner) {
+        return extra.reply('🚫 الأمر ده للمشرفين فقط');
+      }
+
       if (!args[0]) {
         const settings = database.getGroupSettings(extra.from);
         const status = settings.antigroupmention ? 'مفعلة ✅' : 'متوقفة ❌';
